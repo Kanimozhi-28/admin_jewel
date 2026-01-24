@@ -28,15 +28,16 @@ export function SalesBarChart() {
     }));
 
     return (
-        <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data} margin={{ top: 20 }}>
+        <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={data} margin={{ top: 20, right: 5, bottom: 20, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
                 <XAxis
                     dataKey="name"
-                    className="text-xs font-medium"
                     tickLine={false}
                     axisLine={false}
-                    dy={10}
+                    interval={0}
+                    tick={{ fill: 'hsl(var(--foreground))', fontSize: 11 }}
+                    height={40}
                 />
                 <YAxis
                     className="text-xs"

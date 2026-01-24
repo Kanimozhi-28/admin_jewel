@@ -149,6 +149,7 @@ def read_audit_logs(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
 def read_activity_heatmap(db: Session = Depends(get_db)):
     return crud.get_activity_heatmap(db)
 
+
 class LoginRequest(BaseModel):
     username: str
     password: str

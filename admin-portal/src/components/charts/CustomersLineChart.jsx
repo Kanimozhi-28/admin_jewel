@@ -1,17 +1,11 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-    { name: 'Mon', customers: 40 },
-    { name: 'Tue', customers: 30 },
-    { name: 'Wed', customers: 20 },
-    { name: 'Thu', customers: 27 },
-    { name: 'Fri', customers: 18 },
-    { name: 'Sat', customers: 23 },
-    { name: 'Sun', customers: 34 },
-];
+export function CustomersLineChart({ data }) {
+    if (!data || data.length === 0) {
+        return <div className="h-[300px] flex items-center justify-center text-muted-foreground text-sm">No visit data available</div>;
+    }
 
-export function CustomersLineChart() {
     return (
         <ResponsiveContainer width="100%" height={300}>
             <LineChart data={data}>

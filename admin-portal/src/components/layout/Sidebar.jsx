@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Contact, BarChart, Settings, LogOut, Lock, Cctv } from 'lucide-react';
+import { LayoutDashboard, Users, Contact, BarChart, Settings, LogOut, Lock, Cctv, Sparkles } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
 
@@ -10,11 +10,14 @@ const navItems = [
     { path: '/salesmen', icon: Users, label: 'Manager View' },
     { path: '/customers', icon: Contact, label: 'Customers' },
     { path: '/reports', icon: BarChart, label: 'Reports' },
+    { path: '/ai-hotlead', icon: Sparkles, label: 'AI Hotlead' },
     { path: '/settings', icon: Settings, label: 'Settings', locked: true },
 ];
 
 export function Sidebar() {
     const { logout } = useAuth();
+
+
 
     return (
         <aside className="w-64 bg-card border-r flex flex-col h-screen fixed left-0 top-0">

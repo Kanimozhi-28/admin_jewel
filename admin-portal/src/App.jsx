@@ -10,6 +10,8 @@ import Customers from './pages/Customers';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Integrations from './pages/Integrations';
+import AIHotlead from './pages/AIHotlead';
+import CREView from './pages/CREView';
 
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
@@ -29,7 +31,9 @@ function AppRoutes() {
           <Route path="/integrations" element={<Integrations />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/ai-hotlead" element={<AIHotlead />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/cre" element={<CREView />} />
         </Route>
       </Route>
 

@@ -36,10 +36,9 @@ export const createSalesperson = async (data) => {
         username: data.username || data.name.toLowerCase().replace(/\s/g, ''),
         password: data.password || "default123", // Use provided or fallback
         full_name: data.name,
-        role: 'salesman',
+        role: data.role, // Use the selected role from form
         zone: data.zone,
         sales_count: data.sales,
-        status: data.status,
         status: data.status,
         photo: data.photo
     };
@@ -95,5 +94,21 @@ export const fetchAuditLogs = async () => {
 
 export const fetchActivityHeatmap = async () => {
     const response = await api.get('/activity-heatmap/');
+    return response.data;
+};
+
+// --- CRE Services ---
+export const fetchFloatingCustomers = async () => {
+    const response = await api.get('/customers/floating/');
+    return response.data;
+};
+
+export const markCustomerIgnored = async (customerId, isIgnored = true) => {
+    const response = await api.put(`/customers/${customerId}/ignore?is_ignored=${isIgnored}`);
+    return response.data;
+};
+
+export const allocateCustomer = async (allocationData) => {
+    const response = await api.post('/sessions/allocate', allocationData);
     return response.data;
 };

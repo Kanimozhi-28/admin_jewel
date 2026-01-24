@@ -97,14 +97,75 @@ def get_family_clusters(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.FamilyCluster).offset(skip).limit(limit).all()
 
 # --- Dashboard Metrics ---
+# --- Dashboard Metrics ---
 def get_dashboard_metrics(db: Session):
-    total_sales = db.query(models.Session).count() # Just count sessions as sales proxy
+    total_sales_sessions = db.query(models.Session).count()
     total_customers = db.query(models.Customer).count()
     
+    # Calculate average time per customer (session duration)
+    sessions = db.query(models.Session).filter(models.Session.end_time != None).all()
+    total_duration = 0
+    count = 0
+    for s in sessions:
+        if s.start_time and s.end_time:
+            duration = (s.end_time - s.start_time).total_seconds() / 60 # in minutes
+            total_duration += duration
+            count += 1
+    
+    avg_time = round(total_duration / count, 1) if count > 0 else 0
+    
+    # Calculate attended percentage (unique customers with sessions / total customers)
+    attended_customers = db.query(models.Session.customer_id).distinct().count()
+    attended_percentage = round((attended_customers / total_customers) * 100, 1) if total_customers > 0 else 0
+    
+    # Floor distribution (from MLDetections for historical traffic)
+    floor_counts = db.query(
+        models.MLDetections.floor,
+        func.count(models.MLDetections.id).label('count')
+    ).group_by(models.MLDetections.floor).all()
+    
+    floor_distribution = []
+    for f in floor_counts:
+        floor_distribution.append({
+            "name": f.floor or "Unknown",
+            "value": f.count
+        })
+
+    # Daily visits (Ensure all 7 days are present)
+    days_map = {"Mon": 0, "Tue": 0, "Wed": 0, "Thu": 0, "Fri": 0, "Sat": 0, "Sun": 0}
+    
+    daily_stats = db.query(
+        func.to_char(models.Session.start_time, 'Dy').label('day'),
+        func.count(models.Session.id).label('count')
+    ).group_by('day').all()
+    
+    for s in daily_stats:
+        if s.day in days_map:
+            days_map[s.day] = s.count
+            
+    # Return in correct calendar order
+    ordered_days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    daily_visits = [{"name": day, "customers": days_map[day]} for day in ordered_days]
+
+    # Top Interacted Jewels
+    jewel_stats = db.query(
+        models.Jewel.name,
+        func.count(models.SessionDetails.id).label('count')
+    ).join(models.SessionDetails, models.Jewel.id == models.SessionDetails.jewel_id)\
+     .group_by(models.Jewel.name)\
+     .order_by(func.count(models.SessionDetails.id).desc())\
+     .limit(5).all()
+    
+    top_jewels = [{"name": j.name, "count": j.count} for j in jewel_stats]
+
     return {
-        "total_sales_sessions": total_sales,
+        "total_sales_sessions": total_sales_sessions,
         "total_customers": total_customers,
-        # Cannot calculate revenue generically without sales table
+        "avg_time_per_customer": avg_time,
+        "attended_percentage": attended_percentage,
+        "floor_distribution": floor_distribution,
+        "daily_visits": daily_visits,
+        "top_jewels": top_jewels
     }
 
 # --- Audit Logs ---
@@ -232,3 +293,40 @@ def get_activity_heatmap(db: Session):
             heatmap_data.append({"floor": z, "hour": 12, "count": 0})
 
     return heatmap_data
+
+from sqlalchemy import text
+
+# --- CRE Functionality ---
+def get_floating_customers(db: Session):
+    # Customers in store who are NOT in the ignored_customers table and have no active session
+    # Using raw SQL for ignored check to avoid ORM initialization issues
+    try:
+        res = db.execute(text("SELECT customer_id FROM ignored_customers")).fetchall()
+        ignored_customer_ids = [r[0] for r in res]
+    except:
+        ignored_customer_ids = []
+
+    active_session_customer_ids = db.query(models.Session.customer_id).filter(models.Session.end_time == None).subquery()
+    
+    customers = db.query(models.Customer).filter(
+        models.Customer.is_in_store == True,
+        ~models.Customer.id.in_(ignored_customer_ids),
+        ~models.Customer.id.in_(active_session_customer_ids)
+    ).all()
+    
+    return customers
+
+def update_customer_ignored_status(db: Session, customer_id: int, is_ignored: bool):
+    if is_ignored:
+        # Add to ignored_customers if not already there
+        exists = db.query(models.IgnoredCustomer).filter(models.IgnoredCustomer.customer_id == customer_id).first()
+        if not exists:
+            new_ignored = models.IgnoredCustomer(customer_id=customer_id, reason="Marked by CRE")
+            db.add(new_ignored)
+            db.commit()
+    else:
+        # Remove from ignored_customers
+        db.query(models.IgnoredCustomer).filter(models.IgnoredCustomer.customer_id == customer_id).delete()
+        db.commit()
+    
+    return db.query(models.Customer).filter(models.Customer.id == customer_id).first()

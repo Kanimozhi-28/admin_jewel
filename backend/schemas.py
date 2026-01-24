@@ -87,6 +87,7 @@ class CustomerCreate(CustomerBase):
 
 class Customer(CustomerBase):
     id: int
+
     class Config:
         from_attributes = True
         populate_by_name = True

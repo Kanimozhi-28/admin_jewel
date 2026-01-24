@@ -14,15 +14,7 @@
 
 From the remote database, you can use any of these:
 
-| Username | Password |
-|----------|----------|
-| vishwa | password |
-| marimuthu | password1 |
-| karthi | password |
-| david | password |
-| user_4 | newpassword123 |
-| user_12 | password |
-
+C:\Users\kanimozhi.a\Downloads\Adminpage\admin-portal
 ## Testing Steps
 
 ### 1. Start the Backend Server

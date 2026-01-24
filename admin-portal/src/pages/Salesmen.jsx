@@ -94,7 +94,7 @@ export default function Salesmen() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Touch Section</h2>
+                    <h2 className="text-3xl font-bold tracking-tight">Salesperson & Customer Allocation</h2>
                     <p className="text-muted-foreground mt-1">Manage salespersons and floor assignments</p>
                 </div>
             </div>
@@ -156,6 +156,7 @@ export default function Salesmen() {
                                                 <option value="salesman">Salesman</option>
                                                 <option value="manager">Manager</option>
                                                 <option value="admin">Admin</option>
+                                                <option value="CRM">CRM</option>
                                             </select>
                                         </div>
                                         <div className="space-y-2">

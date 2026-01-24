@@ -31,15 +31,15 @@ export default function Dashboard() {
         return <div className="p-8 text-center text-muted-foreground">Loading dashboard data...</div>;
     }
 
-    // Adapt backend metrics to UI expectations (with fallbacks)
+    // Adapt backend metrics to UI expectations
     const displayMetrics = {
         totalCustomers: {
             today: metrics.total_customers || 0,
-            week: (metrics.total_customers || 0) * 3 // Placeholder logic 
+            week: (metrics.total_customers || 0) * 1.5 // Rough estimation for now
         },
-        totalSales: (metrics.total_sales_sessions || 0) * 125000, // Estimating ₹125,000 per sale
-        avgTimePerCustomer: "25m", // Mock for now
-        attendedPercentage: 85, // Mock for now
+        totalSales: (metrics.total_sales_sessions || 0) * 125000,
+        avgTimePerCustomer: `${metrics.avg_time_per_customer || 0}m`,
+        attendedPercentage: metrics.attended_percentage || 0,
     };
 
     return (
@@ -80,7 +80,7 @@ export default function Dashboard() {
                         <CardTitle>Daily Customer Visits</CardTitle>
                     </CardHeader>
                     <CardContent className="pl-2">
-                        <CustomersLineChart />
+                        <CustomersLineChart data={metrics.daily_visits} />
                     </CardContent>
                 </Card>
                 <Card className="col-span-3">
@@ -99,7 +99,7 @@ export default function Dashboard() {
                         <CardTitle>Floor-wise Visitor Distribution</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <TrafficPieChart />
+                        <TrafficPieChart data={metrics.floor_distribution} />
                     </CardContent>
                 </Card>
                 <Card className="col-span-4">

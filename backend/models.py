@@ -3,8 +3,7 @@ from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
 
-# --- Association Tables ---
-# FamilyMember association table removed as per correct DB schema
+# --- Models ---
 
 class User(Base):
     __tablename__ = "users"
@@ -13,13 +12,13 @@ class User(Base):
     username = Column(String(50), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     full_name = Column(String(100))
-    role = Column(String(20)) # 'admin' or 'salesman'
+    role = Column(String(20)) # 'admin', 'salesman'
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Remote DB specific fields
     unique_id = Column(String(100))
-    embedding = Column(Text) # or equivalent type
+    embedding = Column(Text) 
     customer_jpg = Column(String(255))
     
     # Map frontend 'zone' to backend 'floor' column
@@ -54,8 +53,6 @@ class Jewel(Base):
     photo_url = Column(String(255))
     created_at = Column(DateTime, default=datetime.utcnow)
     
-    # Missing in Remote: views, sales, category (Removed to avoid errors)
-
     comments = relationship("SessionDetails", back_populates="jewel")
 
 class Customer(Base):
@@ -66,13 +63,13 @@ class Customer(Base):
     face_embedding_id = Column(String(100))
     first_seen = Column(DateTime)
     last_seen = Column(DateTime)
-    total_visits = Column(Integer, default=1) # Renamed from visits
+    total_visits = Column(Integer, default=1)
     current_floor = Column(String(50))
     is_in_store = Column(Boolean, default=False)
     embedding = Column(Text)
     customer_jpg = Column(Text)
     
-    # New fields for Family
+    # Family logic
     family_id = Column(Integer, ForeignKey("family_clusters.id"))
     family_relationship = Column(String(50))
 
@@ -84,8 +81,21 @@ class Customer(Base):
     def visits(self):
         return self.total_visits
 
+    # Relationships
     sessions = relationship("Session", back_populates="customer")
     family = relationship("FamilyCluster", back_populates="members")
+    ignored_info = relationship("IgnoredCustomer", back_populates="customer", uselist=False)
+
+
+
+class IgnoredCustomer(Base):
+    __tablename__ = "ignored_customers"
+    id = Column(Integer, primary_key=True, index=True)
+    customer_id = Column(Integer, ForeignKey("customers.id"), unique=True)
+    reason = Column(String(255))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    customer = relationship("Customer", back_populates="ignored_info")
 
 class FamilyCluster(Base):
     __tablename__ = "family_clusters"
@@ -129,11 +139,11 @@ class SalesmanTrigger(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     salesperson_id = Column(Integer, ForeignKey("users.id"))
-    sales_person_name = Column(String(100)) # New field in remote
-    customer_id = Column(Integer, ForeignKey("customers.id")) # New field
+    sales_person_name = Column(String(100))
+    customer_id = Column(Integer, ForeignKey("customers.id"))
     customer_short_id = Column(String(50))
-    customer_jpg = Column(String(255)) # New field
-    time_stamp = Column(DateTime, default=datetime.utcnow) # Renamed from created_at
+    customer_jpg = Column(String(255))
+    time_stamp = Column(DateTime, default=datetime.utcnow)
     floor = Column(String(50))
     is_notified = Column(Boolean, default=False)
 
@@ -155,5 +165,3 @@ class Events(Base):
     customer_id = Column(Integer)
     camera_name = Column(String(100))
     timestamp = Column(DateTime)
-
-# AuditLog removed because it does not exist in remote DB schema

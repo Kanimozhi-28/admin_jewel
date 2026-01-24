@@ -17,21 +17,26 @@ export default function Login() {
         e.preventDefault();
         setError('');
         setLoading(true);
-        
+
         if (!username.trim() || !password.trim()) {
             setError('Please enter both username and password');
             setLoading(false);
             return;
         }
-        
+
         console.log('Login form submitted:', { username: username.trim() });
-        
+
         const result = await login(username.trim(), password);
         setLoading(false);
-        
+
         if (result.success) {
             console.log('Login successful, redirecting to dashboard...');
-            navigate('/');
+            // Redirect based on role
+            if (result.user?.role === 'cre') {
+                navigate('/cre');
+            } else {
+                navigate('/');
+            }
         } else {
             console.log('Login failed:', result.message);
             setError(result.message || "Login failed. Please check your credentials.");
